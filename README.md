@@ -111,7 +111,6 @@ This document outlines the process for setting up a Jenkins instance on an AWS E
 You will need personal access tokens for **GitHub**, **Docker Hub**, and **Google Chat**.
 ![App Screenshot](./screenshots/pat dockerhub.png)
 
-
 1. **GitHub**:
 
    - Go to [GitHub Personal Access Tokens](https://github.com/settings/tokens).
@@ -295,7 +294,7 @@ In Markdown, you can add both **images** and **links** using simple syntax. Belo
 To link an image in Markdown, you use a combination of the image syntax and the link syntax. Here's the format:
 
 ```markdown
-[![alt text](image-url)](link-url)
+[![alt text](./mern-todo-app-conf/adding credentials.png)]
 ````
 
 - `alt text`: A description of the image, shown if the image can't be loaded.
