@@ -54,7 +54,7 @@ pipeline {
                     sh 'git config --global user.email "shashidas95@gmail.com"'
                     sh 'git config --global user.name "shashidas95"'
                     sh 'git add ./k8s/backend-deployment.yaml ./k8s/frontend-deployment.yaml ./docker-compose.yaml'
-                    sh "git commit -m 'Updated backend and frontend deployment and docker-compose files to ${IMAGE_TAG}'"
+                    sh "git commit -m 'Updated with new ${IMAGE_TAG}'"
                 }
 
                 // Push the changes
