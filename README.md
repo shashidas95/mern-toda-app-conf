@@ -109,17 +109,17 @@ This document outlines the process for setting up a Jenkins instance on an AWS E
 ## 5. **Create Personal Access Tokens**
 
 You will need personal access tokens for **GitHub**, **Docker Hub**, and **Google Chat**.
-![App Screenshot](./screenshots/pat dockerhub.png)
 
 1. **GitHub**:
 
    - Go to [GitHub Personal Access Tokens](https://github.com/settings/tokens).
    - Generate a token with repo and webhook permissions.
 
-2. **Docker Hub**:
+![MERN Todo App](./screenshots/pat%20github.png) 2. **Docker Hub**:
 
-   - Log in to Docker Hub.
-   - Navigate to **Account Settings > Security** to generate a personal access token.
+- Log in to Docker Hub.
+- Navigate to **Account Settings > Security** to generate a personal access token.
+  ![MERN Todo App](./screenshots/pat%20dockerhub.png)
 
 3. **Google Chat**:
    - Create a webhook URL for Google Chat following [this guide](https://developers.google.com/chat). This will be used to send notifications.
@@ -133,6 +133,7 @@ You will need personal access tokens for **GitHub**, **Docker Hub**, and **Googl
    - **GitHub Token** (Name: `github-token`)
    - **Docker Hub Token** (Name: `dockerhub-token`)
    - **Google Chat Webhook URL** (Name: `google-chat-webhook`)
+     ![MERN Todo App](./screenshots/adding%20credentials.png)
 
 ---
 
@@ -303,7 +304,16 @@ To link an image in Markdown, you use a combination of the image syntax and the 
 
 #### Example:
 
-[![MERN Todo App](./screenshots/database.png)]
+![MERN Todo App](./screenshots/database.png)
+![MERN Todo App](./screenshots/adding%20credentials.png)
+![MERN Todo App](./screenshots/build%20success.png)
+![MERN Todo App](./screenshots/add%20ip%20address%20for%20mongodb%20connection.png)
+![MERN Todo App](./screenshots/docker%20containers%20up%20and%20running.png)
+![MERN Todo App](./screenshots/dockerhub%20registry.png)
+![MERN Todo App](./screenshots/pat%20dockerhub.png)
+![MERN Todo App](./screenshots/pat%20github.png)
+![MERN Todo App](./screenshots/pipelne%20stages%20.png)
+![MERN Todo App](./screenshots/updated%20image%20in%20config%20repo.png)
 
 In this example:
 
