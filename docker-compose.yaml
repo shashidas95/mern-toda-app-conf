@@ -2,13 +2,13 @@ version: '3.8'
 
 services:
   backend:
-    image: shashidas/mern-todo-be:20241110-0754
+    image: shashidas/mern-todo-be:20241110-1050
     ports:
       - "${PORT:-8000}:8000"
     env_file:
       - backend.env
 
   frontend:
-    image: shashidas/mern-todo-fe:20241110-0754
+    image: shashidas/mern-todo-fe:20241110-1050
     ports:
       - '3000:3000'
