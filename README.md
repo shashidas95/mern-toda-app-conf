@@ -27,7 +27,7 @@ This document outlines the process for setting up a Jenkins instance on an AWS E
 
 1. **Launch EC2 Instance**
 
-   - Create an EC2 instance with an Ubuntu-based AMI (e.g., `ubuntu-20.04`).
+   - Create an EC2 instance with an Ubuntu-based AMI .
    - Ensure that the instance has sufficient resources (e.g., t2.medium or above for Jenkins and Docker).
 
 2. **SSH into the EC2 Instance**
@@ -69,6 +69,8 @@ This document outlines the process for setting up a Jenkins instance on an AWS E
    - **Source**: Anywhere (0.0.0.0/0) or restrict to your IP.
 
 ---
+
+![MERN Todo App](./screenshots/inbound%20rules.png)
 
 ## 3. **Access Jenkins UI**
 
@@ -126,6 +128,8 @@ You will need personal access tokens for **GitHub**, **Docker Hub**, and **Googl
 
 ---
 
+![MERN Todo App](./screenshots/adding%20credentials.png)
+
 ## 6. **Configure Jenkins Credentials**
 
 1. Go to **Manage Jenkins > Manage Credentials**.
@@ -144,41 +148,105 @@ In your **GitHub Repository** (e.g., `mern-todo-app`), create a `Jenkinsfile` in
 ```groovy
 pipeline {
     agent any
-    parameters {
-        string(name: 'IMAGE_TAG', defaultValue: 'latest', description: 'Docker image tag')
+
+    environment {
+        DOCKERHUB_USERNAME = "shashidas"
+        GIT_REPO = "https://github.com/shashidas95/mern-todo-app"
+        CONFIG_PROJECT_NAME = "mern-todo-app-conf"
+        IMAGE_BE = "mern-todo-be"
+        IMAGE_FE = "mern-todo-fe"
     }
+
     stages {
-        stage('Clone Repo') {
-            steps {
-                git 'https://github.com/shashidas95/mern-todo-app.git'
-            }
-        }
-        stage('Build Docker Image') {
+        stage('SETUP IMAGE TAG') {
             steps {
                 script {
-                    def dockerImage = docker.build("mern-todo-app:${params.IMAGE_TAG}")
+                    // Set the IMAGE_TAG dynamically with the current date and time
+                    IMAGE_TAG = new Date().format('yyyyMMdd-HHmm')
                 }
             }
         }
-        stage('Push Docker Image') {
+
+        stage('CLEANUP WORKSPACE') {
+            steps {
+                cleanWs()
+            }
+        }
+
+        stage("CHECKOUT GIT REPO") {
+            steps {
+                git branch: 'main', url: "${GIT_REPO}"
+            }
+        }
+
+        stage('Check Docker') {
+            steps {
+                sh 'echo $PATH'
+                sh 'docker --version'
+            }
+        }
+
+        stage("BUILD DOCKER IMAGES") {
             steps {
                 script {
-                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-token') {
-                        dockerImage.push()
+                    // Build backend image
+                    dir('backend') {
+                        sh "docker build --no-cache -t ${DOCKERHUB_USERNAME}/${IMAGE_BE}:${IMAGE_TAG} -t ${DOCKERHUB_USERNAME}/${IMAGE_BE}:latest ."
+                    }
+
+                    // Build frontend image
+                    dir('frontend') {
+                        sh "docker build --no-cache -t ${DOCKERHUB_USERNAME}/${IMAGE_FE}:${IMAGE_TAG} -t ${DOCKERHUB_USERNAME}/${IMAGE_FE}:latest ."
                     }
                 }
             }
         }
-        stage('Trigger Deployment Pipeline') {
+
+        stage("PUSH DOCKER IMAGES TO DOCKERHUB") {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', passwordVariable: 'PASSWORD', usernameVariable: 'USER_NAME')]) {
+                    sh 'echo ${PASSWORD} | docker login --username ${USER_NAME} --password-stdin'
+
+                    // Push backend image with both tags
+                    sh "docker push ${DOCKERHUB_USERNAME}/${IMAGE_BE}:${IMAGE_TAG}"
+                    sh "docker push ${DOCKERHUB_USERNAME}/${IMAGE_BE}:latest"
+
+                    // Push frontend image with both tags
+                    sh "docker push ${DOCKERHUB_USERNAME}/${IMAGE_FE}:${IMAGE_TAG}"
+                    sh "docker push ${DOCKERHUB_USERNAME}/${IMAGE_FE}:latest"
+
+                    sh 'docker logout'
+                }
+            }
+        }
+
+        stage("TRIGGERING THE CONFIG PIPELINE") {
+            steps {
+                // Trigger the config pipeline for backend and frontend
+                build job: CONFIG_PROJECT_NAME, parameters: [string(name: 'IMAGE_TAG', value: IMAGE_TAG)]
+            }
+        }
+
+        stage("CLEANUP DOCKER CACHES AND IMAGES") {
             steps {
                 script {
-                    def webhookUrl = 'https://jenkins.example.com/generic-webhook-trigger/invoke'
-                    sh "curl -X POST --data-urlencode 'payload={\"image_tag\":\"${params.IMAGE_TAG}\"}' ${webhookUrl}"
+                    // Remove all Docker images and caches
+                    sh 'docker system prune -af --volumes'
                 }
             }
         }
     }
+
+    post {
+        success {
+            echo 'Pipeline completed successfully with cleanup'
+        }
+        failure {
+            echo 'Pipeline failed'
+        }
+    }
 }
+
 ```
 
 ---
@@ -195,6 +263,8 @@ In your **GitHub Repository**:
 
 ---
 
+![MERN Todo App](./screenshots/webhook%20github.png)
+
 ## 9. **Create a Second GitHub Repository for Deployment**
 
 Create another GitHub repository that includes Docker Compose and Kubernetes files. This repository will contain a `Jenkinsfile` for deploying the Docker image.
@@ -202,39 +272,90 @@ Create another GitHub repository that includes Docker Compose and Kubernetes fil
 ```groovy
 pipeline {
     agent any
+
     parameters {
-        string(name: 'IMAGE_TAG', defaultValue: 'latest', description: 'Docker image tag')
+        string(name: 'IMAGE_TAG', description: 'Enter the image tag')
     }
+
+    environment {
+        GIT_REPO = "https://github.com/shashidas95/mern-todo-app-conf"
+        DOCKERHUB_USERNAME = "shashidas" // Docker Hub username
+        IMAGE_BE = "mern-todo-be"
+        IMAGE_FE = "mern-todo-fe"
+        CONFIG_PROJECT_NAME = "mern-todo-app-config"
+    }
+
     stages {
-        stage('Clone Repo') {
+        stage('CLEANUP WORKSPACE') {
             steps {
-                git 'https://github.com/yourusername/deployment-repo.git'
+                cleanWs()
             }
         }
-        stage('Update Docker Compose and Kubernetes') {
+
+        stage("CHECKOUT GIT REPO") {
+            steps {
+                git branch: 'main', url: "${GIT_REPO}"
+            }
+        }
+
+        stage("UPDATE K8S DEPLOYMENT FILES FOR BACKEND AND FRONTEND") {
             steps {
                 script {
-                    sh "sed -i 's/latest/${params.IMAGE_TAG}/g' docker-compose.yml"
-                    sh "sed -i 's/latest/${params.IMAGE_TAG}/g' k8s/deployment.yaml"
+                    // Define image names using DOCKERHUB_USERNAME and IMAGE_BE/IMAGE_FE
+                    def backendImageName = "${DOCKERHUB_USERNAME}/${IMAGE_BE}"
+                    def frontendImageName = "${DOCKERHUB_USERNAME}/${IMAGE_FE}"
+
+                    // Update backend deployment file with new IMAGE_TAG
+                    sh 'cat ./k8s/backend-deployment.yaml'
+                    sh "sed -i 's#image: ${backendImageName}:.*#image: ${backendImageName}:${IMAGE_TAG}#' ./k8s/backend-deployment.yaml"
+                    sh 'cat ./k8s/backend-deployment.yaml'
+
+                    // Update frontend deployment file with new IMAGE_TAG
+                    sh 'cat ./k8s/frontend-deployment.yaml'
+                    sh "sed -i 's#image: ${frontendImageName}:.*#image: ${frontendImageName}:${IMAGE_TAG}#' ./k8s/frontend-deployment.yaml"
+                    sh 'cat ./k8s/frontend-deployment.yaml'
+
+
+                    // Update docker-compose  file with new IMAGE_TAG
+                    sh 'cat ./docker-compose.yaml'
+                    sh "sed -i 's#image: ${frontendImageName}:.*#image: ${frontendImageName}:${IMAGE_TAG}#' ./docker-compose.yaml"
+                     sh "sed -i 's#image: ${backendImageName}:.*#image: ${backendImageName}:${IMAGE_TAG}#' ./docker-compose.yaml"
+                    sh 'cat ./docker-compose.yaml'
+
+                    // Configure Git for committing the changes
+                    sh 'git config --global user.email "shashidas95@gmail.com"'
+                    sh 'git config --global user.name "shashidas95"'
+                    sh 'git add ./k8s/backend-deployment.yaml ./k8s/frontend-deployment.yaml ./docker-compose.yaml'
+                    sh "git commit -m 'Updated with new ${IMAGE_TAG}'"
+                    // Restarting Docker Compose
+                    echo "Restarting Docker Compose"
+                    sh "docker compose down"
+                    sh "docker compose up -d"
+                }
+
+
+
+                // Push the changes
+                withCredentials([usernamePassword(credentialsId: 'githubuser', passwordVariable: 'pass', usernameVariable: 'uname')]) {
+                    sh 'git push https://$uname:$pass@github.com/shashidas95/mern-todo-app-conf.git main'
                 }
             }
         }
-        stage('Run Docker Compose') {
-            steps {
-                sh 'docker-compose up -d'
-            }
+    }
+
+     post {
+        success {
+            googlechatnotification url: 'id:google_chat_webhook', message: 'Build succeeded with new image!'
         }
-        stage('Notify Google Chat') {
-            steps {
-                script {
-                    def webhookUrl = 'https://chat.googleapis.com/v1/spaces/.../messages?key=...'
-                    def message = "Build completed and deployed with image: ${params.IMAGE_TAG}"
-                    sh "curl -X POST -H 'Content-Type: application/json' -d '{\"text\": \"${message}\"}' ${webhookUrl}"
-                }
-            }
+        failure {
+            googlechatnotification url: 'id:google_chat_webhook', message: 'Build failed!'
+        }
+        always {
+            googlechatnotification url: 'id:google_chat_webhook', message: 'Build completed with new image tag.'
         }
     }
 }
+
 ```
 
 ---
@@ -276,108 +397,9 @@ pipeline {
 
 ---
 
-## Screenshot
-
-![Jenkins Setup](https://example.com/screenshot-link.png)
-
-````
-
 ### Key Points:
+
 1. **Jenkins Setup**: Installs Jenkins and Docker on an EC2 instance, configures Jenkins with necessary plugins, and sets up credentials for GitHub, Docker Hub, and Google Chat.
 2. **CI/CD Pipeline**: Defines a `Jenkinsfile` for the build and deployment pipeline that involves cloning a GitHub repo, building and pushing Docker images, and triggering a second deployment pipeline.
 3. **Webhooks**: Configures GitHub webhooks to trigger the Jenkins pipeline upon pull request merges.
 4. **Deployment**: Automates deployment with Docker Compose and Kubernetes, and notifies Google Chat on completion.
-
-In Markdown, you can add both **images** and **links** using simple syntax. Below are examples of how to do each:
-
-### 1. **Linking an Image**
-
-To link an image in Markdown, you use a combination of the image syntax and the link syntax. Here's the format:
-
-```markdown
-[![alt text](./mern-todo-app-conf/adding credentials.png)]
-````
-
-- `alt text`: A description of the image, shown if the image can't be loaded.
-- `image-url`: The URL or path to the image file.
-- `link-url`: The URL you want to link to when the image is clicked.
-
-#### Example:
-
-![MERN Todo App](./screenshots/database.png)
-![MERN Todo App](./screenshots/adding%20credentials.png)
-![MERN Todo App](./screenshots/build%20success.png)
-![MERN Todo App](./screenshots/add%20ip%20address%20for%20mongodb%20connection.png)
-![MERN Todo App](./screenshots/docker%20containers%20up%20and%20running.png)
-![MERN Todo App](./screenshots/dockerhub%20registry.png)
-![MERN Todo App](./screenshots/pat%20dockerhub.png)
-![MERN Todo App](./screenshots/pat%20github.png)
-![MERN Todo App](./screenshots/pipelne%20stages%20.png)
-![MERN Todo App](./screenshots/updated%20image%20in%20config%20repo.png)
-
-In this example:
-
-- The image `mern-todo-app-screenshot.png` will be displayed.
-- When the image is clicked, it will redirect to `https://example.com`.
-
-### 2. **Linking Text**
-
-To add a link to text in Markdown, use this syntax:
-
-```markdown
-[link text](URL)
-```
-
-- `link text`: The clickable text.
-- `URL`: The destination URL.
-
-#### Example:
-
-```markdown
-[Visit our Website](https://example.com)
-```
-
-This will display as:
-
-- **[Visit our Website](https://example.com)**
-
-### Putting Both Together
-
-You can combine both an image and a text link in a single Markdown document:
-
-```markdown
-# Welcome to the MERN Todo App
-
-Check out our [MERN Todo App screenshot](https://example.com/mern-todo-app-screenshot.png) below:
-
-[![MERN Todo App](https://example.com/mern-todo-app-screenshot.png)](https://example.com)
-
-For more information, visit [our website](https://example.com).
-```
-
-### Explanation:
-
-- **Text Link**: `Check out our [MERN Todo App screenshot](https://example.com/mern-todo-app-screenshot.png)` will create a clickable text link to the image.
-- **Image with Link**: `[![MERN Todo App](https://example.com/mern-todo-app-screenshot.png)](https://example.com)` will show the image and link it to the provided URL.
-- **Plain Text Link**: `[our website](https://example.com)` creates a clickable text that links to the website.
-
----
-
-### Final Example in Markdown:
-
-```markdown
-# MERN Todo App Setup
-
-To view the setup and code repository, click on the image below:
-
-[![MERN Todo App](https://example.com/mern-todo-app-screenshot.png)](https://example.com)
-
-For more details, visit the full documentation on [our website](https://example.com).
-```
-
-This will render:
-
-- An image of the MERN Todo App that is linked to `https://example.com`.
-- A clickable text link "our website" that takes you to `https://example.com`.
-
-Let me know if you need further clarification or help!
