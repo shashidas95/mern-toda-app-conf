@@ -1,4 +1,3 @@
-
 # Jenkins CI/CD Pipeline for MERN Todo App
 
 This document outlines the process for setting up a Jenkins instance on an AWS EC2 instance, configuring Jenkins with Docker and GitHub, and triggering two CI/CD pipelines for building and deploying the MERN stack application. The entire pipeline integrates GitHub, Docker Hub, and Google Chat notifications.
@@ -16,9 +15,10 @@ This document outlines the process for setting up a Jenkins instance on an AWS E
    ```bash
    ssh -i your-key.pem ubuntu@<public-ip-address>
    ```
+
 ````
 
-3. **Install Jenkins and Docker**  
+3. **Install Jenkins and Docker**
    Run the following commands to install Jenkins and Docker:
 
    ```bash
@@ -62,7 +62,7 @@ This document outlines the process for setting up a Jenkins instance on an AWS E
    http://<public-ip-address>:8080
    ```
 
-2. **Retrieve Jenkins Admin Password**  
+2. **Retrieve Jenkins Admin Password**
    To get the Jenkins admin password, SSH into your EC2 instance and run:
 
    ```bash
@@ -110,7 +110,8 @@ You will need personal access tokens for **GitHub**, **Docker Hub**, and **Googl
 
 ---
 
-![MERN Todo App](./screenshots/adding%20credentials.png)
+![MERN Todo App](./screenshots/google-chat-notification%20url.png)
+
 
 ## 6. **Configure Jenkins Credentials**
 
@@ -344,7 +345,7 @@ pipeline {
 
 ## 10. **Trigger the CI/CD Pipeline**
 
-1. **Pull Request Merge**  
+1. **Pull Request Merge**
    When a pull request is merged from `dev` to `main` in the **MERN Todo App** GitHub repository, it will trigger the first Jenkins pipeline, which will:
 
    - Clone the repo.
@@ -352,7 +353,7 @@ pipeline {
    - Push the image to Docker Hub.
    - Trigger the second pipeline.
 
-2. **Second Pipeline**  
+2. **Second Pipeline**
    The second pipeline:
    - Pulls the latest Docker image.
    - Updates the Docker Compose and Kubernetes files with the new image tag.
@@ -360,6 +361,14 @@ pipeline {
    - Sends a notification to Google Chat.
 
 ---
+![MERN Todo App](./screenshots/google-chat-notification.png)
+![MERN Todo App](./screenshots/build%20success.png)
+![MERN Todo App](./screenshots/updated%20image%20in%20config%20repo.png)
+![MERN Todo App](./screenshots/docker%20containers%20up%20and%20running.png)
+![MERN Todo App](./screenshots/dockerhub%20registry.png)
+![MERN Todo App](./screenshots/website%20.png)
+
+
 
 ## 11. **Final Workflow**
 
@@ -385,3 +394,4 @@ pipeline {
 2. **CI/CD Pipeline**: Defines a `Jenkinsfile` for the build and deployment pipeline that involves cloning a GitHub repo, building and pushing Docker images, and triggering a second deployment pipeline.
 3. **Webhooks**: Configures GitHub webhooks to trigger the Jenkins pipeline upon pull request merges.
 4. **Deployment**: Automates deployment with Docker Compose and Kubernetes, and notifies Google Chat on completion.
+````
