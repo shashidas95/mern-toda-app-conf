@@ -73,13 +73,13 @@ pipeline {
 
      post {
         success {
-            googlechatnotification url: 'id:google_chat_webhook', message: 'Build succeeded!'
+            googlechatnotification url: 'id:google_chat_webhook', message: 'Build succeeded with new image!'
         }
         failure {
             googlechatnotification url: 'id:google_chat_webhook', message: 'Build failed!'
         }
         always {
-            googlechatnotification url: 'id:google_chat_webhook', message: 'Build completed.'
+            googlechatnotification url: 'id:google_chat_webhook', message: 'Build completed with new image tag.'
         }
     }
 }
