@@ -55,7 +55,13 @@ pipeline {
                     sh 'git config --global user.name "shashidas95"'
                     sh 'git add ./k8s/backend-deployment.yaml ./k8s/frontend-deployment.yaml ./docker-compose.yaml'
                     sh "git commit -m 'Updated with new ${IMAGE_TAG}'"
+                    // Restarting Docker Compose
+                    echo "Restarting Docker Compose"
+                    sh "docker-compose down"
+                    sh "docker-compose up -d --no-cache"
                 }
+             
+
 
                 // Push the changes
                 withCredentials([usernamePassword(credentialsId: 'githubuser', passwordVariable: 'pass', usernameVariable: 'uname')]) {
