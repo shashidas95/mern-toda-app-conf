@@ -303,7 +303,7 @@ To link an image in Markdown, you use a combination of the image syntax and the 
 
 #### Example:
 
-[![MERN Todo App](./mern-todo-app-conf/database.png)]
+[![MERN Todo App](./database.png)]
 
 In this example:
 
