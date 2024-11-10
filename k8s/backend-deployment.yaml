@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: shashidas/mern-todo-be:20241107-0245
+          image: shashidas/mern-todo-be:20241110-0656
           ports:
             - containerPort: 8000 # Change to the backend port
           env:

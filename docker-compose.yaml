@@ -2,11 +2,11 @@ version: '3.8'
 
 services:
   backend:
-    image: shashidas/mern-todo-be:20241107-0245
+    image: shashidas/mern-todo-be:20241110-0656
     ports:
       - '8000:8000'
 
   frontend:
-    image: shashidas/mern-todo-fe:20241107-0245
+    image: shashidas/mern-todo-fe:20241110-0656
     ports:
       - '3000:3000'
