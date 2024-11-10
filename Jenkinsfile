@@ -71,12 +71,15 @@ pipeline {
         }
     }
 
-    post {
+     post {
         success {
-            echo 'Pipeline completed successfully'
+            googlechatnotification url: 'id:google_chat_webhook', message: 'Build succeeded!'
         }
         failure {
-            echo 'Pipeline failed'
+            googlechatnotification url: 'id:google_chat_webhook', message: 'Build failed!'
+        }
+        always {
+            googlechatnotification url: 'id:google_chat_webhook', message: 'Build completed.'
         }
     }
 }
