@@ -1,22 +1,4 @@
-# continuos integration
 
-- create an ec2 instance with jenkins and docker installed, edit inbound rules for jenkins port 8080 open
-- vist http://<public_url_instance>:8080
-- connect the instance with ssh-agent and sudo cat /var/lib/jenkins/initialAdminPassword
-- it will output password and enter the password to jenkins ui and create users and install plugins and jenkins ready
-- install generic-web-hook-trigger and google-chat-notification plugin and restart the jenkins
-- create personal access token of github and docker hub and url for google chat notification from github, docker hub and google-chat-notification
-- use these personal access token and url for adding jenkins credentials
-- In the github repo create an jenkins file after the pull request from dev to main will trigger mern-todo-app pipeline in which git clone from the github, checkout docker image build, and then push the images to dockerhub and picks the image tag from the image name which is a parameter for the second pipeline. trigger the second pipeline pass the image tag to second pipeline
-- in github settings add webhook of generic-webhook-trigger with the jenkins ec2 instance in which jenkins is installed.
-- create another github repo consisting of docker-compose file and k8s deployment files and in that file create an jenkins file. which receives the image tag as a parameter, git clone and checkout the k8s files to change newest received image tag and docker-compose file to change the tag of the image tag from the docker-compose file. run the docker-compose environments and sends the message to google-chat-notification app that the build is completed with the new image
-- after merge the pull request from dev to main it will trigger the first pipeline and after successful build from it will trigger the second pipeline
-
-Here's a step-by-step guide for setting up Jenkins with Docker, configuring webhooks, and triggering CI/CD pipelines in a GitHub and Docker Hub environment. This example assumes you have a basic understanding of AWS, Jenkins, Docker, Kubernetes, and GitHub.
-
-### README.md
-
-````markdown
 # Jenkins CI/CD Pipeline for MERN Todo App
 
 This document outlines the process for setting up a Jenkins instance on an AWS EC2 instance, configuring Jenkins with Docker and GitHub, and triggering two CI/CD pipelines for building and deploying the MERN stack application. The entire pipeline integrates GitHub, Docker Hub, and Google Chat notifications.
