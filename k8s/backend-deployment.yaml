@@ -18,18 +18,27 @@ spec:
         - name: backend
           image: shashidas/mern-todo-be:20241110-0656
           ports:
-            - containerPort: 8000 # Change to the backend port
+            - containerPort: 8000
           env:
             - name: MONGO_URI
               valueFrom:
                 secretKeyRef:
-                  name: mongo-secret
+                  name: backend-secrets
                   key: mongo_uri
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: jwt-secret
+                  name: backend-secrets
                   key: jwt_secret
+            - name: GMAIL_USERNAME
+              value: 'shashidas95@gmail.com'
+            - name: GMAIL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: gmail_password
+            - name: PORT
+              value: '8000'
 
 ---
 apiVersion: v1
@@ -42,5 +51,5 @@ spec:
   ports:
     - protocol: TCP
       port: 8000
-      targetPort: 8000 # Change to backend container port
+      targetPort: 8000
   type: ClusterIP

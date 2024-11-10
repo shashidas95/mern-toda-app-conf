@@ -58,7 +58,7 @@ pipeline {
                     // Restarting Docker Compose
                     echo "Restarting Docker Compose"
                     sh "docker compose down"
-                    sh "docker compose up -d --no-cache"
+                    sh "docker compose up -d"
                 }
              
 
