@@ -57,8 +57,8 @@ pipeline {
                     sh "git commit -m 'Updated with new ${IMAGE_TAG}'"
                     // Restarting Docker Compose
                     echo "Restarting Docker Compose"
-                    sh "docker-compose down"
-                    sh "docker-compose up -d --no-cache"
+                    sh "docker compose down"
+                    sh "docker compose up -d --no-cache"
                 }
              
 
